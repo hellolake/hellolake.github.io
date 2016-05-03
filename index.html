@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="lake.min.js"></script>
+    <script src="lake.bmap.min.js"></script>
+    <script src="jquery-2.1.1.min.js"></script>
+    <!--<link href="css.css" type="text/css" rel="stylesheet">-->
+    <style id="style" rel="stylesheet">
+        .listen{
+            animation: anm111 4s linear infinite;
+        }
+        .listen{
+            animation: anm222 4s linear infinite;
+        }
+        @keyframes anm111 {
+            from {transform:rotate(0deg);}
+            to {transform:rotate(360deg);}
+        }
+        @keyframes anm222 {
+            from {transform:translateX(0);}
+            to {transform:translateX(50px);}
+        }
+        #div3:after{content: "";display: block;width: 20px;height: 20px;background: #123456;}
+    </style>
+</head>
+<body>
+    <div class="a" id="a1">a1<div class="a" id="a2">a2<p>p</p></div></div>
+    <div class="b" id="b1">b1</div>
+    <div class="b" id="b2">b2</div>
+    <div class="c" id="c1">c1</div>
+    <div id="get1"></div>
+    <div id="get2"></div>
+
+    <input type="file" name="file" class="file" id="file1" />
+    <input type="file" name="file" class="file" id="file2" multiple />
+    <a id="upload">upload</a>
+    <div id="post1"></div>
+    <div id="listen">listen</div>
+    <div id="listen2">
+        <div class="listen">test</div>
+        <div class="listen">test</div>
+    </div>
+    <div id="tsf">asd<p class="p">transform</p></div>
+    <div id="tsf2"></div>
+
+    <div id="div1" style="background: blue;width: 100px; height: 100px;">
+        <div id="div2" style="background: red;width: 70px; height: 70px;">
+            <div id="div3" style="background: yellow;width: 50px; height: 50px;"></div>
+        </div>
+    </div>
+
+    <div class="listener" id="listener">listener test<p class="create" id="create">create</p><p class="on" id="on">on</p><p class="off" id="off">off</p> </div>
+
+    <div class="map" id="map" style="height: 300px;width: 100%;display: flex;justify-content: center;align-items:center"></div>
+
+    <script>
+
+//// Firefox和Chrome早期版本中带有前缀
+//var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+//
+//
+//// 选择目标节点
+//var target = document.getElementById("a1");
+//
+//// 创建观察者对象
+//var observer = new MutationObserver(function(mutations) {
+//    mutations.forEach(function(mutation) {
+//        alert(mutation.type);
+//    });
+//});
+//
+//// 配置观察选项:
+//var config = { attributes: true, childList: true, characterData: true, subtree:true };
+
+// 传入目标节点和观察选项
+//observer.observe(target, config);
+
+//target.appendChild(document.createElement("p"));
+
+
+
+
+    lake.listen(window,"load",function(){
+//        document.addEventListener("alter",function(e){
+//            console.log(e,"alter")
+//        });
+//        document.addEventListener("modify",function(e){
+//            console.log(e,"modify")
+//        });
+
+        var bl = true;
+        var undf = undefined;
+        var num =123;
+        var str ="asd213";
+        var arr = [123,1234];
+        var HTMLCollection =  document.getElementsByTagName("div");
+        var NodeList = document.querySelectorAll(".b");
+        var aa = document.getElementById("a1");
+        var cc = document.getElementById("c1");
+        var aa2 = document.getElementById("a2");
+        var p = document.createElement("p");
+        var nodearr = [aa,cc];
+        var nodeobj = {aa:aa,cc:cc};
+        var fn=function(){var a = 123};
+        var date = new Date();
+        var reg = /asd/;
+
+
+
+       // lake.select("div").each(function(o){console.log(o.style)});
+
+        var selector = ".a";
+        var sty = document.createElement("style");
+        sty.setAttribute("type","text/css");
+        sty.innerHTML += selector + "{content:'" + selector + "'}";
+        document.head.appendChild(sty);
+        console.log(sty.innerHTML);
+        console.log(aa);
+        console.log(sty,document.defaultView.getComputedStyle(aa,null).getPropertyValue("content"));
+
+
+
+        var transform = document.getElementById("tsf");
+        var transform2 = document.getElementById("tsf2");
+        var ppp = document.createElement("p");
+        transform2.innerHTML = "<p class='p'>transform</p>";
+        transform.innerText = "<p class='p'>transform</p>";
+
+
+        transform2.appendChild(ppp);
+        //console.log((transform.innerHTML).replace(/<\w+()/g,""))
+       // aa.innerHTML = 'jkl';
+
+////        HTMLElement:
+//        innerHTML
+//        outerHTML
+//
+////        Element:
+//        innerHTML
+//        set innerHTML
+//        insertAdjacentElement
+//        insertAdjacentHTML
+//        outerHTML
+//        set outerHTML
+//        remove
+//
+////        Node:
+//        appendChild
+//        contains
+//        insertBefore
+//        removeChild
+//        replaceChild
+
+        //aa.replaceChild(cc,aa2);
+        //aa.innerHTML = 'jkl';
+
+        console.log(1!=true)
+
+        function testa(num,t){
+            var s = num;
+            setTimeout(function(){console.log(s,t)},t);
+        }
+        //testa(3,5000)
+        function testb(arg,opt){
+            if(opt)var option ={
+                qq:opt.qq,
+                ww:opt.ww?opt.ww:true,
+                ee:opt.ee
+            };
+            console.log(option,opt)
+        }
+        //testb(22,{qq:11,ww:undefined,ee:33})
+        lake.ajax("get","xml.xml",{
+            onload:function(xhr){console.log(xhr);var x = xhr.responseXML.documentElement.getElementsByTagName("CD")[0];get1.appendChild(x)}
+        });
+        lake.ajax("get","test.txt",{
+            onload:function(xhr){console.log(xhr);var x = xhr.responseText;get2.innerHTML=x}
+        });
+
+        var formData = new FormData();
+
+        lake.listen("#upload","click",function(e){
+            e.preventDefault();
+            lake.each(lake.select(".file"),function(ele){
+                for(var k=0;k<ele.files.length;k++){
+                    formData.append("file[]",ele.files[k]);
+                }
+            })
+            lake.ajax("post","php.php",{
+                data:formData,
+                onload:function(xhr,e){console.log(xhr,e)},
+                onprogress:function(xhr,e){console.log(xhr,e)}
+            })
+        })
+        lake.listen(".file","change",function(e){
+            console.log(e.target.files)
+        });
+        document.addEventListener("change",function(e){console.log(e)},true);
+
+
+
+        document.querySelector("#listen").addEventListener("click",function(){
+            var testl = document.createElement("div");
+            testl.innerHTML = "test";
+            testl.className = "listen";
+            listen2.appendChild(testl)
+        })
+        document.addEventListener("animationstart",function(event){
+            console.log(event)
+        },false)
+
+
+        //mo
+
+        function m_call(mutations){
+            mutations.forEach(function(mutation) {
+                console.log(mutations,mutation)
+            });
+        }
+        var mutate = lake.mutation(m_call);
+
+//        mutate.del();
+//        mutate.del("#a1");
+
+        mutate.add("#a1");
+        mutate.add("#listen2");
+
+
+//        mutate.off();
+//        mutate.off("#a1");
+
+
+//        var mutate2 = lake.mutation(m_call);
+
+
+
+        console.log(mutate);
+//        moo2.observe(aa, {childList:true, subtree:true});
+
+
+        var target = document.getElementById("a1");
+        target.addEventListener("click",function(){
+            this.appendChild(document.createElement("p"));
+            console.log(mutate.takeRecords());
+            listen2.appendChild(document.createElement("p"));
+        });
+
+        var target2 = document.getElementById("listen2");
+        target2.addEventListener("click",function(){
+            mutate.off("#listen2");
+        });
+
+        var target3 = document.getElementById("b1");
+        target3.addEventListener("click",function(){
+            target.appendChild(document.createElement("p"));
+            listen2.appendChild(document.createElement("p"));
+            console.log(mutate.takeRecords());
+        });
+
+
+
+        //css
+        lake.css("#a1","height:100px;color:red;");
+        lake.css(".b","height:100px;color:blue;");
+        lake.css(".c","height:100px;color:green;",true);
+
+
+        //event
+        var oDvi1 = document.getElementById('div1'),
+            oDvi2 = document.getElementById('div2'),
+            oDvi3 = document.getElementById('div3');
+            oDvi4 = document.querySelector('#div2:first-child');
+//        console.log({}==0);
+
+
+// 123 -> 456 -> 345
+
+        oDvi1.addEventListener("click",xx1,true);
+        oDvi1.addEventListener("click",xx2,false);
+        oDvi1.addEventListener("click",xx3,true);
+
+
+
+        function xx1(e){ //蓝
+            if(e.target == oDvi1)alert(123);
+            console.log(lake.whats(e),e,this,e)
+        }
+
+        function xx2(e){ //红
+            if(e.target == oDvi2)alert(345);
+        }
+
+        function xx3(e){//黄
+            if(e.target == oDvi3)alert(456);
+
+        }
+        function xx4(e){//黄
+            if(e.target == after)alert(789);
+
+        }
+
+        //match
+        var string = ' .a~.b,.a.b   #c > div   .d + p div:last-child a[style*="back"]';
+        function test_pre(obj,selector){
+            if (/\.\w+$/.test(selector)){
+                return obj.classList.contains(selector.replace(/\./,""))
+            }else if (/#\w+$/.test(selector)){
+                return obj.id == (selector.replace(/#/,""))
+            }else if (/^\w+\w*\w*$/.test(selector)){
+                return obj.tagName == selector.toUpperCase()
+            }else if(/:first-child$/.test(selector)){
+                return test_pre(obj,selector.replace(/:first-child$/,"")) && obj.parentNode.firstElementChild === obj
+            }else if(/:last-child$/.test(selector)){
+                return test_pre(obj,selector.replace(/:last-child$/,"")) && obj.parentNode.lastElementChild === obj
+            }
+        }
+//        lake.each(string.split(","),function(str1){
+//            var string2 = (str1.replace(/\s*([>+~])\s*/g,"$1"));
+//            var target=obj,result=true;
+//            lake.each(string2.match(/\S+/g),function(str2){
+//                lake.each(str2.match(/[>+~]|[#.]?\w+(?::\S+|\[\S+])?/g),function(str3){
+//                    if(/[\.#]?\w+$/.test(str3)){
+//                        if(target.nodeType){
+//                            result = result && test_pre(target,str3)
+//                        }else if(target.length){
+//                            lake.each(target,function(ele){
+//                                result = result && test_pre(ele,str3)
+//                            })
+//                        }
+//                    }else if(/^>$/.test(str3)){
+//                        target = target.parentNode
+//                    }else if(/^+$/.test(str3)){
+//                        target = target.previousElementSibling
+//                    }else if(/^~$/.test(str3)){
+//                        var prevs = [],
+//                            prev_t = target.previousElementSibling;
+//                        while (!prev_t){
+//                            prevs.push(prev_t);
+//                            prev_t = prev_t.previousElementSibling
+//                        }
+//                        target = prevs
+//                    }
+//                },true);
+//            },true)
+//        })
+        var strr = " as  d ",abc={a:{aa:{},bb:{}},b:{ba:{}}},ooo=document.querySelectorAll("div");
+        abc[strr.trim().replace(/\s+/g," ")]=123;
+        abc[ooo]=456;
+//        lake.each(abc,function(ele){console.log(ele)});
+        abc['zxc']=234;
+        lake.match(aa,"div",function(r,s){console.log(r,s)});
+
+        function lll1(e){console.log(1)}
+        function lll2(e){console.log(2)}
+        function lll3(e){console.log(3)}
+        function dell(e){listener.del(".on","click");console.log(listener)}
+
+        var listener = lake.listener(".listener");
+        console.log(listener);
+
+        listener.add(".on","click",lll1);
+        listener.add("click",lll2);
+        listener.add(".off","click",dell);
+//        listener.add(".off","mousedown",lll2);
+//        listener.add("click",lll3);
+//        $(".listener").on("click",".on",lll1);
+
+        var _listen = lake.select(".listener");
+        function ontest(){
+            var i = 50000;
+            while(i--) {
+                var newp = document.createElement("p");
+                newp.className = "on";
+                newp.innerHTML = "on";
+                _listen.appendChild(newp);
+            }
+        }
+        $(".create").on("click",function(){ontest()});
+//        $(".off").on("click",function(){$(".on").on("click",lll1);});
+//        lake.listener(".on","click",function(){ontest()});
+//        lake.listener(".off","click",function(){lake.listener(".on","click",lll1);alert("success")});
+//        lake.listener(_listen,"click",lll1);
+
+        var cr =document.createElement("click");
+//        document.body.appendChild(cr);
+        console.log(/Unknow/.test(lake.whats(cr,true)));
+        console.log(lake)
+
+
+        //map
+        lake.bmap(function () {
+            var map1 = this.new("#map")
+        })
+
+
+    });
+//        var aa = document.getElementById("a1");
+//        var bb = document.getElementById("b1");
+//        aa.appendChild(bb);
+    </script>
+</body>
+
+</html>
