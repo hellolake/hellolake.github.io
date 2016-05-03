@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title></title>
+    <script src="js/lake.bmap.min.js"></script>
+    <style id="style" rel="stylesheet">
+        html,body{height:100%;margin:0;}
+        #btns input{margin-top: 3px;}
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+    <a href="javascript:window.history.go(-1);" style="position: absolute;left: .5em;top: .5em;z-index: 999;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.8);color: #000;border-radius:.5em;"><<</a>
+    <div class="map mapa" id="map1" style="height: 40%;width: 100%;"></div>
+    <section style="height:30%;position: relative;">
+        <div id="logs" style="height:38%;width: 100%;text-align: center;overflow: hidden;position: absolute;bottom:5px;left: 0;z-index:-1;font-size: 12px;-webkit-text-size-adjust:none"></div>
+        <div id="btns" style="padding-top: 1em;text-align: center;">
+            <input type="button" id="btn1" value="enable slip">
+            <input type="button" id="btn2" value="disable slip">
+            <input type="button" id="btn3" value="enable drag">
+            <input type="button" id="btn4" value="disable drag">
+            <input type="button" id="btn5" value="random element">
+        </div>
+        <div id="openit" style="position: absolute;left:50%;top: 65%;z-index:68;background-color: rgba(255,255,255,.75);border: 1px solid #aaa;border-radius: .25em;padding:0 1em;-webkit-transform:translate(-50%,-50%);transform: translate(-50%,-50%);text-align: center;white-space:nowrap;">
+            <p style="font-size: .875em;">Open,and let me in!<br>戳我进去！</p>
+        </div>
+    </section>
+
+    <div id="code" style="height:30%;width:100%;border-top: 1px solid #ddd;overflow: auto;background: #eee;color: #333;position: absolute;bottom: 0;left: 0;">
+        <pre style="padding-left:1em;">
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","深圳",15);
+
+    //add zoom tool
+    var top_left_control = new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT});
+    map1.addControl(top_left_control);
+
+    //转换目标元素为覆盖物 点击添加到地图 convert an element to overlay and click into map
+    var custom = lake.bmap.overlay("#openit",{oninit:init});
+
+    openit.addEventListener("click",addoverlay);
+
+    function addoverlay(){
+        openit.removeEventListener("click",addoverlay);
+        map1.addOverlay(custom);
+    }
+    function init(){
+        //初始化... Initialize...
+        this.point = map1.getCenter();
+    }
+
+    //开启滑拽 入指丝滑 enableSlip
+    btn1.onclick = function () {
+        custom.enableSlip();
+    };
+
+    //关闭滑拽 disableSlip
+    btn2.onclick = function () {
+        custom.disableSlip()
+    };
+    //开启拖拽 随指随拖 enableDragging
+    btn3.onclick = function () {
+        custom.enableDragging();
+    };
+
+    //关闭拖拽 disableDragging
+    btn4.onclick = function () {
+        custom.disableDragging()
+    };
+
+    //添加随机元素 add random element
+    btn5.onclick = function () {
+        var span = document.createElement("span");
+        span.style.cssText = "position:absolute;z-index:67;padding:.5em;border:.125em solid #fff;border-radius:50%;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);background-color:rgb("+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+");";
+        span.innerHTML = "Bingo!";
+        var _p = map1.getCenter(),
+            p = new BMap.Point(_p.lng+(Math.random()-0.5)/45,_p.lat+(Math.random()-0.5)/45);
+        var overlay = lake.bmap.overlay(span,p,{draggable:true});
+        map1.addOverlay(overlay);
+        map1.panTo(p);
+    };
+
+    //事件 event
+    custom.addEventListener("click", function (e) {
+        log(e.type);
+    });
+    custom.addEventListener("dragstart", function (e) {
+        log(e.type);
+    });
+    custom.addEventListener("dragging", function (e) {
+        //log(e.type);
+    });
+    custom.addEventListener("dragend", function (e) {
+        log(e.type);
+    });
+
+})
+        </pre>
+
+    </div>
+    <script>
+        window.addEventListener("load",function(){
+            console.log(lake);
+
+            function log(){
+                cancelAnimationFrame(loging);
+                for(var i= 0,j=arguments.length;i<j;i++){
+                    logs.innerHTML += arguments[i] + "<br>"
+                }
+                loging();
+            }
+            function loging(){
+                logs.scrollTop++;
+                if(logs.scrollTop < logs.scrollHeight-logs.clientHeight-1) requestAnimationFrame(loging)
+            }
+
+            lake.bmap(function(){
+
+                var map1 = lake.bmap.new("#map1","深圳",15);
+
+                //add zoom tool
+                var top_left_control = new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT});
+                map1.addControl(top_left_control);
+
+                //转换目标元素为覆盖物 点击添加到地图 convert an element to overlay and click into map
+                var custom = lake.bmap.overlay("#openit",{oninit:init});
+
+                openit.addEventListener("click",addoverlay);
+
+                function addoverlay(){
+                    openit.removeEventListener("click",addoverlay);
+                    map1.addOverlay(custom);
+                }
+                function init(){
+                    //初始化... Initialize...
+                    this.point = map1.getCenter();
+                }
+
+                //开启滑拽 入指丝滑 enableSlip
+                btn1.onclick = function () {
+                    custom.enableSlip();
+                };
+
+                //关闭滑拽 disableSlip
+                btn2.onclick = function () {
+                    custom.disableSlip()
+                };
+                //开启拖拽 随指随拖 enableDragging
+                btn3.onclick = function () {
+                    custom.enableDragging();
+                };
+
+                //关闭拖拽 disableDragging
+                btn4.onclick = function () {
+                    custom.disableDragging()
+                };
+
+                //添加随机元素 add random element
+                btn5.onclick = function () {
+                    var span = document.createElement("span");
+                    span.style.cssText = "position:absolute;z-index:67;padding:.5em;border:.125em solid #fff;border-radius:50%;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);background-color:rgb("+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+");";
+                    span.innerHTML = "Bingo!";
+                    var _p = map1.getCenter(),
+                        p = new BMap.Point(_p.lng+(Math.random()-0.5)/45,_p.lat+(Math.random()-0.5)/45);
+                    var overlay = lake.bmap.overlay(span,p,{draggable:true});
+                    map1.addOverlay(overlay);
+                    map1.panTo(p);
+                };
+
+                //事件 event
+                custom.addEventListener("click", function (e) {
+                    log(e.type);
+                });
+                custom.addEventListener("dragstart", function (e) {
+                    log(e.type);
+                });
+                custom.addEventListener("dragging", function (e) {
+                    //log(e.type);
+                });
+                custom.addEventListener("dragend", function (e) {
+                    log(e.type);
+                });
+
+            })
+        })
+    </script>
+</body>
+
+</html>

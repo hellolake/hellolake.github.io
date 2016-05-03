@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title></title>
+    <script src="js/lake.bmap.min.js"></script>
+    <style id="style" rel="stylesheet">
+        html,body{height:100%;margin:0;}
+        #btns input{margin-top: 3px;text-align: center;}
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+<a href="javascript:window.history.go(-1);" style="position: absolute;left: .5em;top: .5em;z-index: 999;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.8);color: #000;border-radius:.5em;"><<</a>
+<div class="map mapa" id="map1" style="height: 40%;width: 100%;"></div>
+<section style="height:30%;position: relative;">
+    <div id="logs" style="height:38%;width: 100%;text-align: center;overflow: hidden;position: absolute;bottom:5px;left: 0;z-index:-1;font-size: 12px;-webkit-text-size-adjust:none"></div>
+    <div id="btns" style="padding-top: 1em;text-align: center;">
+        <input type="button" id="btn1" value="enable drag">
+        <input type="button" id="btn2" value="disable drag">
+        <input type="button" id="btn3" value="change line"><br>
+        <input type="text" id="ipt1" value="北京" style="width: 64px;">
+        <input type="text" id="ipt2" value="上海" style="width: 64px;">
+        <input type="text" id="ipt3" value="厦门" style="width: 64px;">
+        <input type="button" id="btn4" value="Draw">
+    </div>
+</section>
+
+<div id="code" style="height:30%;width:100%;border-top: 1px solid #ddd;overflow: auto;background: #eee;color: #333;position: absolute;bottom: 0;left: 0;">
+        <pre style="padding-left:1em;">
+lake.bmap(function(){
+
+    var map1 = this.new("#map1","北京",13);
+
+    var points = [new BMap.Point(116.367058,39.923886),new BMap.Point(116.408729,39.898329),new BMap.Point(116.434826,39.915558)];
+
+    //设置路径 Set Path
+    var path1 = map1.path(points,process,error);
+
+    //处理过程回调 process callback
+    function process(index,waypoint){
+        //添加路径点
+        var span = document.createElement("span");
+        span.classList.add("point");
+        span.dataset.index = index;
+        var overlay = lake.bmap.overlay(span,waypoint,{draggable:true});
+        map1.addOverlay(overlay);
+
+        var path = this;
+
+        //添加路径点拖拽事件
+        overlay.addEventListener("dragend",function(){
+            var ppp = path.waypoints;
+            ppp[index] = this.point;
+
+            //重绘路径 重置处理过程
+            path.draw(ppp,_process,error);
+            function _process(i,p){
+                i == index&&overlay.setPosition(p);
+                i == points.length-1&&log("距离总长: " + path.distance + "m");
+            }
+        });
+
+        //拖拽开关
+        btn1.addEventListener("click", function () {
+            overlay.enableDragging()
+        });
+        btn2.addEventListener("click", function () {
+            overlay.disableDragging()
+        });
+
+        btn4.addEventListener("click", function () {
+            map1.removeOverlay(overlay)
+        });
+
+        //起点
+        if(index == 0){
+            span.classList.add("start");
+        }
+        //终点
+        if(index == points.length-1){
+            span.classList.add("end");
+            log("距离总长/Distance:" + path.distance + "m");
+        }
+    }
+    function error(code){
+        log("Get path false,code:"+code)
+    }
+
+    //使用地名绘制路径 Draw path use location.
+    btn4.addEventListener("click", function (){
+        points = [ipt1.value,ipt2.value,ipt3.value];
+        path1.draw(points,process,error)
+    });
+
+
+    //随机路径样式 random path style
+    btn3.addEventListener("click", function (){
+        var c = Math.round(Math.random()*parseInt('ffffff',16)).toString(16),
+            o = (Math.random() *0.7+0.3).toFixed(2),
+            w = Math.round(Math.random()*7+3);
+        c = c.length==5?c+"0": c.length==4?c+"00":c;
+
+        path1.setColor("#"+c);
+        path1.setOpacity(o);
+        path1.setWidth(w);
+        path1.style=="solid"?path1.setStyle("dashed"):path1.setStyle("solid");
+
+        log("Color:#"+c+" Opacity:"+o+" Width:"+w+" Style:"+path1.style)
+    });
+
+})
+        </pre>
+
+</div>
+<style>
+    .point{position:absolute;width:8px;height:8px;line-height:8px;text-align:center;z-index:67;border:8px solid #666;background-color:#fff;opacity:0.75;transform:translate(-50%,-120%) rotate(45deg) skew(10deg,10deg);-webkit-transform:translate(-50%,-120%) rotate(45deg) skew(10deg,10deg);}
+    .point:after{content: attr(data-index);display:block;font-size: 13px;transform:translate(0,-19px) rotate(-45deg);-webkit-transform:translate(0,-19px) rotate(-45deg);}
+    .point.start{border-color: #0b0;}
+    .point.end{border-color: #f22;}
+</style>
+<script>
+    window.addEventListener("load",function(){
+        console.log(lake);
+
+        function log(){
+            cancelAnimationFrame(loging);
+            for(var i= 0,j=arguments.length;i<j;i++){
+                logs.innerHTML += arguments[i] + "<br>"
+            }
+            loging();
+        }
+        function loging(){
+            logs.scrollTop++;
+            if(logs.scrollTop < logs.scrollHeight-logs.clientHeight-1) requestAnimationFrame(loging)
+        }
+
+        lake.bmap(function(){
+
+            var map1 = this.new("#map1","北京",13);
+
+            var points = [new BMap.Point(116.367058,39.923886),new BMap.Point(116.408729,39.898329),new BMap.Point(116.434826,39.915558)];
+
+            //设置路径 Set Path
+            var path1 = map1.path(points,process,error);
+
+            //处理过程回调 process callback
+            function process(index,waypoint){
+                //添加路径点
+                var span = document.createElement("span");
+                span.classList.add("point");
+                span.dataset.index = index;
+                var overlay = lake.bmap.overlay(span,waypoint,{draggable:true});
+                map1.addOverlay(overlay);
+
+                var path = this;
+
+                //添加路径点拖拽事件
+                overlay.addEventListener("dragend",function(){
+                    var ppp = path.waypoints;
+                    ppp[index] = this.point;
+
+                    //重绘路径 重置处理过程
+                    path.draw(ppp,_process,error);
+                    function _process(i,p){
+                        i == index&&overlay.setPosition(p);
+                        i == points.length-1&&log("距离总长: " + path.distance + "m");
+                    }
+                });
+
+                //拖拽开关
+                btn1.addEventListener("click", function () {
+                    overlay.enableDragging()
+                });
+                btn2.addEventListener("click", function () {
+                    overlay.disableDragging()
+                });
+
+                btn4.addEventListener("click", function () {
+                    map1.removeOverlay(overlay)
+                });
+
+                //起点
+                if(index == 0){
+                    span.classList.add("start");
+                }
+                //终点
+                if(index == points.length-1){
+                    span.classList.add("end");
+                    log("距离总长/Distance:" + path.distance + "m");
+                }
+            }
+            function error(code){
+                log("Get path false,code:"+code)
+            }
+
+            //使用地名绘制路径 Draw path use location.
+            btn4.addEventListener("click", function (){
+                points = [ipt1.value,ipt2.value,ipt3.value];
+                path1.draw(points,process,error)
+            });
+
+
+            //随机路径样式 random path style
+            btn3.addEventListener("click", function (){
+                var c = Math.round(Math.random()*parseInt('ffffff',16)).toString(16),
+                    o = (Math.random() *0.7+0.3).toFixed(2),
+                    w = Math.round(Math.random()*7+3);
+                c = c.length==5?c+"0": c.length==4?c+"00":c;
+
+                path1.setColor("#"+c);
+                path1.setOpacity(o);
+                path1.setWidth(w);
+                path1.style=="solid"?path1.setStyle("dashed"):path1.setStyle("solid");
+
+                log("Color:#"+c+" Opacity:"+o+" Width:"+w+" Style:"+path1.style)
+            });
+
+        })
+    })
+</script>
+</body>
+
+</html>

@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title></title>
+    <script src="js/lake.bmap.min.js"></script>
+    <style id="style" rel="stylesheet">
+        html,body{height:100%;margin:0;}
+        .wrap{max-width: 1280px;margin:2.75em auto;}
+        h3{padding-left: 16px;margin-top:1.75em;font-size: 1.25em;}
+        section{margin:1.25em 1em;}
+        header{font-size: 18px;border-bottom:1px solid #999;padding-bottom: .5em;padding-left: 12px;-webkit-text-size-adjust:none;position: relative;}
+        header:before{content: "";display: inline-block;width: 7px;height: 10px;background-color: #6eb632;position: absolute;left: 0;top: .325em; border-radius: 3px/5px;}
+        .red header:before{background-color: #f05050;}
+        header span{color: #666;}
+        article p{font-size: 14px;-webkit-text-size-adjust:none;}
+        article pre{font-size: 14px;color: #333;line-height: 1.375em;white-space: pre-wrap;word-break: break-all;-webkit-text-size-adjust:none;}
+        pre span{font-weight: bold;}
+        .code{border-top: 1px solid #ddd;border-bottom: 1px solid #ddd;background: #eee;color: #333;position: relative;}
+        .code>div{max-height:288px;overflow: auto;}
+        .code>div pre{padding-left: 1em;}
+        .code>a{position: absolute;right: 1.5em;bottom: 1.25em;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.5);color: #000;border-radius:.5em;}
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+<a href="javascript:window.history.go(-1);" style="position: fixed;left: .5em;top: .5em;z-index: 999;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.8);color: #000;border-radius:.5em;"><<</a>
+
+<div class="map mapa" id="map1" style="height: 40%;width: 100%;"></div>
+
+<div class="wrap">
+
+<h3>主函数类 Main Function</h3>
+<section>
+    <header>lake.bmap(fn<span>[,options]</span>)</header>
+    <article>
+<p>加载百度地图API/Load BMap API.</p>
+<pre><span>fn: </span>Callback 回调函数</pre>
+<pre>
+<span>options: </span>{
+    key:String,  百度地图API密匙/API KEY
+    ver:String  API版本/API version
+}
+</pre>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.new(container<span>[,location]</span><span>[,zoom]</span><span>[,options]</span>)</header>
+    <article>
+<p>新建地图/New map.</p>
+<pre><span>container: </span>String | Element 地图容器</pre>
+<pre><span>location: </span>String | Point 初始化城市/坐标，默认北京
+    注意：使用城市名初始化会有一定延迟（需要搜索）
+</pre>
+<pre><span>zoom: </span>Number 缩放等级</pre>
+<pre>
+<span>options: </span>{
+    minZoom:Number 地图允许展示的最小级别
+    maxZoom:Number 地图允许展示的最大级别
+    mapType:MapType 地图类型，默认 BMAP_NORMAL_MAP
+    enableHighResolution:Boolean 是否启用使用高分辨率地图，默认启用
+    enableAutoResize:Boolean 是否自动适应地图容器变化，默认启用
+    enableMapClick:Boolean   是否开启底图可点功能，默认启用
+}
+</pre>
+<pre>
+<span>地图类型/mapType: </span>
+    BMAP_NORMAL_MAP 街道视图
+    BMAP_PERSPECTIVE_MAP 透视视图
+    BMAP_SATELLITE_MAP 卫星视图
+    BMAP_HYBRID_MAP 混合视图
+</pre>
+<pre>
+<span>注意/Notice: </span>
+    虽解决了API的多地图城市名初始化图块加载问题，但如果多地图还是尽量使用坐标初始化。
+    因本先生看了几天压缩加密的百度地图API看到吐血，才发现其API部分实现重复重写过，可能经手人太多，导致多地图逻辑问题，部分事件不能正常派发，故不能保证还有其他问题^^
+</pre>
+    </article>
+</section>
+
+<div class="code">
+    <div>
+    <pre>
+加载单张地图：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1");
+
+    //You can use 'this' to replace 'lake.bmap' like: var map1 = this.new("#map1");
+
+})
+    </pre>
+    </div>
+    <a href="#map1">示例DEMO(如上)</a>
+</div>
+<div class="code">
+    <div>
+    <pre>
+加载多张地图：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","深圳");
+    var map2 = lake.bmap.new("#map2",new BMap.Point(116.404, 39.915));
+
+    //或者 or
+    //var map1 = this.new("#map1","深圳");
+    //var map2 = this.new("#map2",new BMap.Point(116.404, 39.915));
+
+})
+    </pre>
+    </div>
+    <a href="multiple_map.html">示例DEMO</a>
+</div>
+
+<section>
+    <header>lake.bmap.gps(<span>[success][,error][,options]</span>)</header>
+    <article>
+        <p>初始化/重置百度地图定位 Initialize/reset the BMap geolocation.</p>
+<pre>
+<span>success: </span>Callback 定位成功回调
+    接收参数：(result)
+    result：{
+        accuracy：位置的精确度（米/m）
+        address：{city,city_code,district,province,street,street_number}
+        altitude：海拔高度
+        altitudeAccuracy：海拔的精确度
+        heading：设备当前移动的角度方向
+        latitude：百度地图纬度
+        longitude：百度地图经度
+        point：百度地图坐标点
+        speed：设备的当前移动速度（米/m）
+        timestamp：时间戳
+    }
+</pre>
+<pre>
+<span>error: </span>Callback 定位错误回调
+    接收参数：(StatusCode) 状态码
+</pre>
+<pre>
+<span>options: </span>{
+    enableHighAccuracy:Boolean 开启高精度定位，默认true
+    timeout:Number 超时时间，默认300000
+    maximumAge:Number 复用周期，默认7000
+    success:Array 包含定位成功的回调数组
+    error:Array   包含定位错误的回调数组
+}
+</pre>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.gps.locate()</header>
+    <article>
+        <p>启用定位一次/Locate once</p>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.gps.run()</header>
+    <article>
+        <p>持续定位/Continue Locating</p>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.gps.stop()</header>
+    <article>
+        <p>停止定位/Stop Locating</p>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.gps.add(type,fn)</header>
+    <article>
+        <p>添加回调函数/Add callback</p>
+        <pre><span>type: </span>"success" | "error" 回调类型</pre>
+        <pre><span>fn: </span>Callback handle 要添加的函数句柄</pre>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.gps.del(type<span>[,fn]</span>)</header>
+    <article>
+        <p>删除回调函数/Delete callback</p>
+        <pre><span>type: </span>"success" | "error" 回调类型</pre>
+        <pre><span>fn: </span>Callback handle 要删除的函数句柄（省略则删除全部同类型的函数）</pre>
+    </article>
+</section>
+
+<div class="code">
+    <div>
+    <pre>
+使用百度地图定位：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","深圳");
+
+    //initialize gps
+    lake.bmap.gps(success1,error1);
+
+    //event
+    btn1.onclick = function(){
+        log("开始定位 Starting GPS...");
+        if(!/Mobile/.test(navigator.userAgent)){
+            log("PC端误差较大 Low accuracy on PC");
+        }
+        lake.bmap.gps.add("success",center);
+        lake.bmap.gps.run();
+    };
+    btn2.onclick = function(){
+        lake.bmap.gps.stop();
+    };
+    btn3.onclick = function(){
+        lake.bmap.gps.add("success",success2);
+    };
+    btn4.onclick = function(){
+        lake.bmap.gps.del("success",success2);
+    };
+    btn5.onclick = function(){
+        lake.bmap.gps.del("success");
+        lake.bmap.gps.del("error");
+    };
+
+    //callback
+    function success1(result){
+        console.log(result);
+        log("东经E:"+result.point.lng+" 北纬N:"+result.point.lat);
+
+    }
+    function success2(result){
+        console.log(result);
+        log("位置P:"+result.address.province+" "+result.address.city);
+    }
+    function error1(err){
+        console.log(err);
+        log("error:"+err);
+    }
+    function center(result){
+        map1.setCenter(result.point);
+        map1.marker.show();
+        map1.circle.show();
+        lake.bmap.gps.del("success",center);
+    }
+
+    //定位事件
+    map1.addEventListener("located",function(e){
+        console.log(e);
+        log("精度A:"+e.accuracy);
+    })
+
+})
+    </pre>
+    </div>
+    <a href="gps.html">示例DEMO</a>
+</div>
+
+<section>
+    <header>lake.bmap.c2p(coords,success<span>[,error]</span><span>[,directly]</span>)</header>
+    <article>
+        <p>将普通坐标转换为百度坐标 Convert coordinate to BMap point.</p>
+<pre>
+<span>coords: </span>Array | Object 坐标数组/对象
+    比如/example：
+    [x,y] | [[x,y],[x,y]...]
+    {lng:x,lat:y} | {longitude:x,latitude:y}
+    [{lng:x,lat:y},{lng:x,lat:y}...]
+    [{longitude:x,latitude:y},{longitude:x,latitude:y}...]
+</pre>
+<pre>
+<span>success: </span>Callback 转换成功回调函数
+    接收参数：(point) 百度坐标点
+</pre>
+<pre>
+<span>error: </span>Callback 转换错误回调函数
+    接收参数：(message) 错误信息
+</pre>
+<pre>
+<span>directly: </span>Boolean 是否直接创建BMap.Point实例而不进行坐标系转换
+</pre>
+    </article>
+</section>
+<div class="code">
+    <div>
+    <pre>
+将一个或多个普通坐标系数组/对象转换为百度坐标点：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","深圳");
+
+    //coordinates
+    var coord = [114.033,22.55];
+    var coords = [[114.055,22.55],[114.066,22.55],[114.077,22.55]];
+
+    btn1.onclick = function(){
+        lake.bmap.c2p(coord,make);
+    };
+    btn2.onclick = function(){
+        lake.bmap.c2p(coords,make);
+    };
+
+    function make(points){
+        for(var i= 0,j=points.length;i&lt;j;i++){
+            var marker = new BMap.Marker(points[i]);
+            map1.addOverlay(marker);
+            map1.setCenter(points[i]);
+            log("东经E:"+points[i].lng+" 北纬N:"+ points[i].lat)
+        }
+    }
+
+})
+    </pre>
+    </div>
+    <a href="c2p.html">示例DEMO</a>
+</div>
+
+<section>
+    <header>lake.bmap.overlay(element<span>[,point]</span><span>[,option]</span>)</header>
+    <article>
+        <p>将目标元素转换为百度地图覆盖物 Convert element to BMap overlay.</p>
+        <pre><span>element: </span>String | Element 要转换的HTML元素</pre>
+        <pre><span>point: </span>BMap Point 百度坐标点 默认为世界中心</pre>
+<pre><span>options: </span>{
+    slip:Boolean,      未开启拖拽时拖拽是否滑落
+    draggable:Boolean, 是否开启拖拽
+    oninit:Callback,   初始化时回调(加入地图时)
+    ondraw:Callback    绘制/重绘时回调
+}
+</pre>
+    </article>
+</section>
+<section>
+    <header>overlay.element</header>
+    <article>
+        <p>HTML Element</p>
+    </article>
+</section>
+<section>
+    <header>overlay.point</header>
+    <article>
+        <p>BMap.Point - 覆盖物位置 location of overlay</p>
+    </article>
+</section>
+<section>
+    <header>overlay.map</header>
+    <article>
+        <p>Map instance - 所属地图实例</p>
+    </article>
+</section>
+<section>
+    <header>overlay.enableDragging()</header>
+    <article>
+        <p>Enable dragging - 开启拖拽</p>
+    </article>
+</section>
+<section>
+    <header>overlay.disableDragging()</header>
+    <article>
+        <p>Disable dragging - 关闭拖拽</p>
+    </article>
+</section>
+<section>
+    <header>overlay.enableSlip()</header>
+    <article>
+        <p>Enable slip - 开启滑拽</p>
+    </article>
+</section>
+<section>
+    <header>overlay.disableSlip()</header>
+    <article>
+        <p>Disable slip - 关闭滑拽</p>
+    </article>
+</section>
+    <section>
+        <header>Event</header>
+        <article>
+            <p>Overlay Events - 覆盖物事件</p>
+        </article>
+        <article>
+<pre><span>Events: </span>
+    拖拽事件/Drag event: dragstart,dragging,dragend
+    鼠标事件/Mouse event: click,dblclick,mousedown,mousemove,mouseup,mouseenter,mouseleave,mouseover,mouseout
+    触摸事件/Touch event: touchstart,touchmove,touchend,touchcancel
+</pre>
+        </article>
+    </section>
+<div class="code">
+    <div>
+    <pre>
+将目标元素转换为百度地图覆盖物：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","深圳",15);
+
+    //add zoom tool
+    var top_left_control = new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT});
+    map1.addControl(top_left_control);
+
+    //转换目标元素为覆盖物 点击添加到地图 convert an element to overlay and click into map
+    var custom = lake.bmap.overlay("#openit",{oninit:init});
+
+    openit.addEventListener("click",addoverlay);
+
+    function addoverlay(){
+        openit.removeEventListener("click",addoverlay);
+        map1.addOverlay(custom);
+    }
+    function init(){
+        //初始化... Initialize...
+        this.point = map1.getCenter();
+    }
+
+    //开启滑拽 入指丝滑 enableSlip
+    btn1.onclick = function () {
+        custom.enableSlip();
+    };
+
+    //关闭滑拽 disableSlip
+    btn2.onclick = function () {
+        custom.disableSlip()
+    };
+    //开启拖拽 随指随拖 enableDragging
+    btn3.onclick = function () {
+        custom.enableDragging();
+    };
+
+    //关闭拖拽 disableDragging
+    btn4.onclick = function () {
+        custom.disableDragging()
+    };
+
+    //添加随机元素 add random element
+    btn5.onclick = function () {
+        var span = document.createElement("span");
+        span.style.cssText = "position:absolute;z-index:67;padding:.5em;border:.125em solid #fff;border-radius:50%;-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);background-color:rgb("+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+","+Math.floor(Math.random()*255)+");";
+        span.innerHTML = "Bingo!";
+        var _p = map1.getCenter(),
+            p = new BMap.Point(_p.lng+(Math.random()-0.5)/45,_p.lat+(Math.random()-0.5)/45);
+        var overlay = lake.bmap.overlay(span,p,{draggable:true});
+        map1.addOverlay(overlay);
+        map1.panTo(p);
+    };
+
+    //事件 event
+    custom.addEventListener("click", function (e) {
+        log(e.type);
+    });
+    custom.addEventListener("dragstart", function (e) {
+        log(e.type);
+    });
+    custom.addEventListener("dragging", function (e) {
+        //log(e.type);
+    });
+    custom.addEventListener("dragend", function (e) {
+        log(e.type);
+    });
+
+})
+    </pre>
+    </div>
+    <a href="overlay.html">示例DEMO</a>
+</div>
+
+<section>
+    <header>lake.bmap.tips(target,location<span>[,option]</span>)</header>
+    <article>
+        <p>输入提示 Input tips.</p>
+<pre>
+<span>target: </span>Input Element 输入框元素
+</pre>
+<pre>
+<span>location: </span>String | Map | Point 检索区域
+</pre>
+<pre>
+<span>option: </span>{
+    types:String 设置为"city"以便只检索地名
+    onselect:Callback 选择列表项时回调
+    onhover:Callback  鼠标移到选表项时回调
+    oncomplete:Callback  列表加载完毕时回调
+}
+</pre>
+    </article>
+</section>
+<div class="code">
+    <div>
+<pre>
+输入提示：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","北京");
+
+    //输入提示 Input tips
+    var tip1 = lake.bmap.tips("#ipt1",map1);
+
+    btn1.onclick = function(){
+        search(ipt1.value)
+    };
+
+    //输入提示 选择并跳转 Input tips select and jump.
+    var tip2 = lake.bmap.tips("#ipt2",map1,{onselect:select});
+
+    function select(){
+        search(ipt2.value)
+    }
+
+    function search(value){
+        var search = new BMap.LocalSearch(map1);
+        search.setSearchCompleteCallback(function(r){
+            var pp = r.getPoi(0).point;
+            map1.centerAndZoom(pp, 16);
+            map1.addOverlay(new BMap.Marker(pp));
+        });
+        search.search(value);
+    }
+
+})
+</pre>
+    </div>
+    <a href="tips.html">示例DEMO</a>
+</div>
+
+<h3>主属性类 Main Property</h3>
+<section>
+    <header>lake.bmap.location</header>
+    <article>
+        <p>BMap.Point - 用户位置 User location.</p>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.accuracy</header>
+    <article>
+        <p>Number - 用户位置精度（米/m） User accuracy of location.</p>
+    </article>
+</section>
+<section>
+    <header>lake.bmap.touchable</header>
+    <article>
+        <p>Boolean - 是否可触摸设备.</p>
+    </article>
+</section>
+
+<h3>地图方法类 Map Function</h3>
+<section>
+    <header>map.user(marker<span>[,circle]</span>)</header>
+    <article>
+        <p>将覆盖物设置为用户位置标识 Set user position overlay.</p>
+<pre><span>marker: </span>Overlay 作为位置标识的覆盖物
+
+    If value is false it will remove current marker overlay.
+    如果值为false将会删除当前位置标识的覆盖物
+    If null/undefined it will nothing happen.
+    如果值为null/undefined将不会有任何作用
+
+    Overlay must implement update() method.
+    覆盖物需实现update()方法
+</pre>
+<pre><span>circle: </span>Overlay 作为精度标识的覆盖物
+
+    If value is false it will remove current circle overlay.
+    如果值为false将会删除当前精度标识的覆盖物
+    If null/undefined it will nothing happen.
+    如果值为null/undefined将不会有任何作用
+
+    Overlay must implement update() method.
+    覆盖物需实现update()方法
+</pre>
+    </article>
+</section>
+<section>
+    <header>map.marker.show()</header>
+    <article>
+        <p>显示用户位置标识 Show user position marker.</p>
+    </article>
+</section>
+<section>
+    <header>map.marker.hide()</header>
+    <article>
+        <p>隐藏用户位置标识 Hide user position marker.</p>
+    </article>
+</section>
+<section>
+    <header>map.circle.show()</header>
+    <article>
+        <p>显示用户位置精度 Show user accuracy circle.</p>
+    </article>
+</section>
+<section>
+    <header>map.circle.hide()</header>
+    <article>
+        <p>隐藏用户位置精度 Hide user accuracy circle.</p>
+    </article>
+</section>
+<section class="red">
+    <header>overlay.update()</header>
+    <article>
+        <p>位置标识更新时回调 Callback when user position update.</p>
+<pre><span>接收参数：</span>(type,location,accuracy)
+
+    type："located" | "moveend" | "zoomend" 更新类型
+    location：BMap.Point 百度地图坐标
+    accuracy：Number 位置精度（米/m）
+
+    "located"：update from located event.  表示定位时的更新
+    "moveend"：update from map move event. 表示地图移动时的更新
+    "zoomend"：update from map zoom event. 表示地图缩放时的更新
+</pre>
+    </article>
+</section>
+<div class="code">
+    <div>
+    <pre>
+显示/隐藏用户位置/精度 & 设置用户位置标识：
+
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1",new BMap.Point(116.404, 39.915),17);
+
+    //add zoom tool
+    var top_left_control = new BMap.NavigationControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT});
+    map1.addControl(top_left_control);
+
+    btn3.onclick = function(){
+        map1.marker.show();
+        map1.setCenter(lake.bmap.location);
+    };
+    btn4.onclick = function(){
+        map1.marker.hide();
+    };
+    btn5.onclick = function(){
+        map1.circle.show();
+        map1.setCenter(lake.bmap.location);
+    };
+    btn6.onclick = function(){
+        map1.circle.hide();
+    };
+
+    //创建用户位置标识的HTML元素 create HTML element of user position marker
+    var span = document.createElement("span");
+    span.style.cssText = "padding:.5em;background-color:#fff;border:1px solid #f50;border-radius:50%;position:absolute;z-index:909;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);";
+    span.innerHTML = "YOU";
+
+    //初始化和设置位置更新时的回调函数 Initialize and set position update callback
+    function init_poz(){
+        this.update = function(type,location,accuracy){
+            if(type == "located"){
+                this.setPosition(location)
+            }
+        };
+        if(lake.bmap.location){
+            this.setPosition(lake.bmap.location);
+        }
+    }
+
+    //创建覆盖物 create overlay
+    var poz = lake.bmap.overlay(span,{oninit:init_poz});
+
+    btn7.onclick = function(){
+        map1.user(poz);
+    };
+
+    //创建用户位置精度的HTML元素 create HTML element of user accuracy circle
+    var span2 = document.createElement("span");
+    span2.style.cssText = "background-color:rgba(255,0,0,.125);border-radius:50%;position:absolute;z-index:808;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);";
+
+    //初始化和设置位置更新时的回调函数 Initialize and set position update callback
+    function init_acc(){
+        this.update = function(type,location,accuracy){
+            if(type == "located"){
+                this.setPosition(location)
+            }
+            this.setAccuracy(accuracy)
+        };
+        this.setAccuracy = function(accuracy){
+            //把padding作为半径 use padding as radius
+            this.element.style.padding = accuracy/this.map.resolution + "px"
+        };
+        if(lake.bmap.location){
+            this.setPosition(lake.bmap.location);
+            this.setAccuracy(lake.bmap.accuracy);
+        }
+    }
+
+    //创建覆盖物 create overlay
+    var acc = lake.bmap.overlay(span2,{oninit:init_acc});
+
+    btn8.onclick = function(){
+        map1.user(null,acc);
+    };
+
+    //initialize gps
+    lake.bmap.gps(success1,error1);
+
+    //callback
+    function success1(result){
+        console.log(result);
+        log("东经E:"+result.point.lng+" 北纬N:"+result.point.lat);
+        log("精度A:"+result.accuracy);
+    }
+    function error1(err){
+        console.log(err);
+        log("error:"+err);
+    }
+    function center(result){
+        map1.setCenter(result.point);
+        lake.bmap.gps.del("success",center);
+    }
+
+    //event
+    btn1.onclick = function(){
+        log("开始定位 Starting GPS...");
+        if(!/Mobile/.test(navigator.userAgent)){
+            log("PC端误差较大 Low accuracy on PC");
+        }
+        lake.bmap.gps.add("success",center);
+        lake.bmap.gps.run();
+    };
+
+    btn2.onclick = function(){
+        lake.bmap.gps.stop();
+    };
+
+})
+    </pre>
+    </div>
+    <a href="user.html">示例DEMO</a>
+</div>
+
+<section>
+    <header>map.path(points<span>[,onprocess]</span><span>[,onerror]</span><span>[,option]</span>)</header>
+    <article>
+        <p>绘制路径 Draw path.</p>
+<pre>
+<span>points: </span>Array(BMap.Point|location) 百度坐标/地名数组
+</pre>
+<pre>
+<span>onprocess: </span>Callback 处理过程回调
+    接收参数：(index,waypoint)
+    index: 当前处理坐标的索引
+    waypoint: 当前处理路径的坐标
+</pre>
+        <pre>
+<span>onerror: </span>Callback 错误回调
+    接收参数：(StatusCode) 状态码
+</pre>
+<pre>
+<span>option: </span>{
+    policy:Constant | Number  检索策略
+    color:String    路径颜色(HEX|color name)
+    opacity:Number  路径不透明度(0-1)
+    width:Number    路径宽度
+    style:String    路径样式("solid"|"dashed")
+    focus:Boolean   绘制完是否对焦
+}
+</pre>
+    </article>
+</section>
+
+<section>
+    <header>path.draw(points<span>[,onprocess]</span><span>[,onerror]</span><span>[,option]</span>)</header>
+    <article>
+        <p>重绘路径 Redraw path.</p>
+<pre>
+<span>参数同上 Same as above. </span>
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.setPolicy(policy)</header>
+    <article>
+        <p>设置检索策略 Set searching policy.</p>
+<pre>
+<span>policy: </span>Constant | Number
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.setColor(color)</header>
+    <article>
+        <p>设置路径颜色 Set path color.</p>
+<pre>
+<span>color: </span>String (HEX|color name)
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.setOpacity(opacity)</header>
+    <article>
+        <p>设置路径不透明度 Set path opacity.</p>
+<pre>
+<span>opacity: </span>Number (0-1)
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.setWidth(width)</header>
+    <article>
+        <p>设置路径宽度 Set path width.</p>
+<pre>
+<span>width: </span>Number
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.setStyle(style)</header>
+    <article>
+        <p>设置路径样式 Set path style.</p>
+<pre>
+<span>style: </span>String ("solid"|"dashed")
+</pre>
+    </article>
+</section>
+<section>
+    <header>path.enableFocus()</header>
+    <article>
+        <p>开启绘制完对焦视图.</p>
+    </article>
+</section>
+<section>
+    <header>path.disableFocus()</header>
+    <article>
+        <p>关闭绘制完对焦视图.</p>
+    </article>
+</section>
+<section>
+    <header>path.show()</header>
+    <article>
+        <p>显示路径.</p>
+    </article>
+</section>
+<section>
+    <header>path.hide()</header>
+    <article>
+        <p>隐藏路径.</p>
+    </article>
+</section>
+<section>
+    <header>path.add()</header>
+    <article>
+        <p>添加到地图.</p>
+    </article>
+</section>
+<section>
+    <header>path.remove()</header>
+    <article>
+        <p>从地图中删除.</p>
+    </article>
+</section>
+
+<section>
+    <header>path.waypoints</header>
+    <article>
+        <p>Array(BMap.Point) - 绘制后的路径点 Waypoints after drew.</p>
+    </article>
+</section>
+<section>
+    <header>path.distance</header>
+    <article>
+        <p>Number - 路径总长(米/m) Path distance.</p>
+    </article>
+</section>
+<section>
+    <header>Policy</header>
+    <article>
+        <p>BMAP_DRIVING_POLICY_LEAST_TIME / 0 最少时间.</p>
+        <p>BMAP_DRIVING_POLICY_LEAST_DISTANCE / 1 最短距离.</p>
+        <p>BMAP_DRIVING_POLICY_AVOID_HIGHWAYS / 2 避开高速.</p>
+    </article>
+</section>
+
+<div class="code">
+    <div>
+<pre>
+绘制路径：
+
+lake.bmap(function(){
+
+    var map1 = this.new("#map1","北京",13);
+
+    var points = [new BMap.Point(116.367058,39.923886),new BMap.Point(116.408729,39.898329),new BMap.Point(116.434826,39.915558)];
+
+    //设置路径 Set Path
+    var path1 = map1.path(points,process,error);
+
+    //处理过程回调 process callback
+    function process(index,waypoint){
+        //添加路径点
+        var span = document.createElement("span");
+        span.classList.add("point");
+        span.dataset.index = index;
+        var overlay = lake.bmap.overlay(span,waypoint,{draggable:true});
+        map1.addOverlay(overlay);
+
+        var path = this;
+
+        //添加路径点拖拽事件
+        overlay.addEventListener("dragend",function(){
+            var ppp = path.waypoints;
+            ppp[index] = this.point;
+
+            //重绘路径 重置处理过程
+            path.draw(ppp,_process,error);
+            function _process(i,p){
+                i == index&&overlay.setPosition(p);
+                i == points.length-1&&log("距离总长: " + path.distance + "m");
+            }
+        });
+
+        //拖拽开关
+        btn1.addEventListener("click", function () {
+            overlay.enableDragging()
+        });
+        btn2.addEventListener("click", function () {
+            overlay.disableDragging()
+        });
+
+        btn4.addEventListener("click", function () {
+            map1.removeOverlay(overlay)
+        });
+
+        //起点
+        if(index == 0){
+            span.classList.add("start");
+        }
+        //终点
+        if(index == points.length-1){
+            span.classList.add("end");
+            log("距离总长/Distance:" + path.distance + "m");
+        }
+    }
+    function error(code){
+        log("Get path false,code:"+code)
+    }
+
+    //使用地名绘制路径 Draw path use location.
+    btn4.addEventListener("click", function (){
+        points = [ipt1.value,ipt2.value,ipt3.value];
+        path1.draw(points,process,error)
+    });
+
+
+    //随机路径样式 random path style
+    btn3.addEventListener("click", function (){
+        var c = Math.round(Math.random()*parseInt('ffffff',16)).toString(16),
+            o = (Math.random() *0.7+0.3).toFixed(2),
+            w = Math.round(Math.random()*7+3);
+        c = c.length==5?c+"0": c.length==4?c+"00":c;
+
+        path1.setColor("#"+c);
+        path1.setOpacity(o);
+        path1.setWidth(w);
+        path1.style=="solid"?path1.setStyle("dashed"):path1.setStyle("solid");
+
+        log("Color:#"+c+" Opacity:"+o+" Width:"+w+" Style:"+path1.style)
+    });
+
+})
+</pre>
+    </div>
+    <a href="path.html">示例DEMO</a>
+</div>
+
+<h3>地图属性类 Map Property</h3>
+<section>
+    <header>map.resolution</header>
+    <article>
+        <p>Number - 地图在屏幕上的分辨率(m/pixel) Map resolution on screen.</p>
+    </article>
+</section>
+<section>
+    <header>map.lngres</header>
+    <article>
+        <p>Number - 经度在屏幕上的分辨率（longitude/pixel） Longitude resolution on screen.</p>
+    </article>
+</section>
+<section>
+    <header>map.latres</header>
+    <article>
+        <p>Number - 纬度在屏幕上的分辨率（latitude/pixel） Latitude resolution on screen.</p>
+    </article>
+</section>
+
+<h3>地图事件 Map Event</h3>
+<section>
+    <header>located</header>
+    <article>
+        <p>定位成功时触发 Dispatch when located.</p>
+<pre>
+<span>event: </span>{
+    type: "located"
+    target: Map
+    location: BMap.Point
+    accuracy: Number
+}
+</pre>
+    </article>
+</section>
+
+
+<h3>状态码 StatusCode</h3>
+<section>
+    <header>StatusCode</header>
+    <article>
+        <p>0 - BMAP_STATUS_SUCCESS 检索成功.</p>
+        <p>1 - BMAP_STATUS_CITY_LIST 城市列表.</p>
+        <p>2 - BMAP_STATUS_UNKNOWN_LOCATION 位置结果未知.</p>
+        <p>3 - BMAP_STATUS_UNKNOWN_ROUTE 导航结果未知.</p>
+        <p>4 - BMAP_STATUS_INVALID_KEY 非法密钥.</p>
+        <p>5 - BMAP_STATUS_INVALID_REQUEST 非法请求.</p>
+        <p>6 - BBMAP_STATUS_PERMISSION_DENIED 没有权限.</p>
+        <p>7 - BMAP_STATUS_SERVICE_UNAVAILABLE 服务不可用.</p>
+        <p>8 - BMAP_STATUS_TIMEOUT 超时.</p>
+    </article>
+</section>
+
+
+</div>
+
+<script>
+    window.addEventListener("load",function(){
+        console.log(lake);
+
+        function log(){
+            cancelAnimationFrame(loging);
+            for(var i= 0,j=arguments.length;i<j;i++){
+                logs.innerHTML += arguments[i] + "<br>"
+            }
+            loging();
+        }
+        function loging(){
+            logs.scrollTop++;
+            if(logs.scrollTop < logs.scrollHeight-logs.clientHeight-1) requestAnimationFrame(loging)
+        }
+
+        lake.bmap(function(){
+
+            var map1 = lake.bmap.new("#map1");
+
+            lake.bmap.gps(function(r){map1.setCenter(r.point)});
+            lake.bmap.gps.locate();
+
+        })
+    })
+</script>
+</body>
+
+</html>

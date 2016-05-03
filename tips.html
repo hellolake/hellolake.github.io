@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title></title>
+    <script src="js/lake.bmap.min.js"></script>
+    <style id="style" rel="stylesheet">
+        html,body{height:100%;margin:0;}
+        #btns input{margin-top: 3px;}
+    </style>
+</head>
+<body style="background: #f9f9f9;">
+<a href="javascript:window.history.go(-1);" style="position: absolute;left: .5em;top: .5em;z-index: 999;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.8);color: #000;border-radius:.5em;"><<</a>
+<div class="map mapa" id="map1" style="height: 40%;width: 100%;"></div>
+<section style="height:30%;position: relative;">
+    <div id="logs" style="height:38%;width: 100%;text-align: center;overflow: hidden;position: absolute;bottom:5px;left: 0;z-index:-1;font-size: 12px;-webkit-text-size-adjust:none"></div>
+    <div id="btns" style="padding-top: 1em;text-align: center;">
+        <input type="text" id="ipt1" placeholder="请输入(不跳转)...">
+        <input type="button" id="btn1" value="GO"><br>
+        <input type="text" id="ipt2" placeholder="请输入(跳转)...">
+    </div>
+</section>
+
+<div id="code" style="height:30%;width:100%;border-top: 1px solid #ddd;overflow: auto;background: #eee;color: #333;position: absolute;bottom: 0;left: 0;">
+        <pre style="padding-left:1em;">
+lake.bmap(function(){
+
+    var map1 = lake.bmap.new("#map1","北京");
+
+    //输入提示 Input tips
+    var tip1 = lake.bmap.tips("#ipt1",map1);
+
+    btn1.onclick = function(){
+        search(ipt1.value)
+    };
+
+    //输入提示 选择并跳转 Input tips select and jump.
+    var tip2 = lake.bmap.tips("#ipt2",map1,{onselect:select});
+
+    function select(){
+        search(ipt2.value)
+    }
+
+    function search(value){
+        var search = new BMap.LocalSearch(map1);
+        search.setSearchCompleteCallback(function(r){
+            var pp = r.getPoi(0).point;
+            map1.centerAndZoom(pp, 16);
+            map1.addOverlay(new BMap.Marker(pp));
+        });
+        search.search(value);
+    }
+
+})
+        </pre>
+
+</div>
+
+<script>
+    window.addEventListener("load",function(){
+        console.log(lake);
+
+        function log(){
+            cancelAnimationFrame(loging);
+            for(var i= 0,j=arguments.length;i<j;i++){
+                logs.innerHTML += arguments[i] + "<br>"
+            }
+            loging();
+        }
+        function loging(){
+            logs.scrollTop++;
+            if(logs.scrollTop < logs.scrollHeight-logs.clientHeight-1) requestAnimationFrame(loging)
+        }
+
+        lake.bmap(function(){
+
+            var map1 = lake.bmap.new("#map1","北京");
+
+            //输入提示 Input tips
+            var tip1 = lake.bmap.tips("#ipt1",map1);
+
+            btn1.onclick = function(){
+                search(ipt1.value)
+            };
+
+            //输入提示 选择并跳转 Input tips select and jump.
+            var tip2 = lake.bmap.tips("#ipt2",map1,{onselect:select});
+
+            function select(){
+                search(ipt2.value)
+            }
+
+            function search(value){
+                var search = new BMap.LocalSearch(map1);
+                search.setSearchCompleteCallback(function(r){
+                    var pp = r.getPoi(0).point;
+                    map1.centerAndZoom(pp, 16);
+                    map1.addOverlay(new BMap.Marker(pp));
+                });
+                search.search(value);
+            }
+
+            //log
+            tip1.addEventListener("onconfirm",function(e){
+                var _value = e.item.value;
+                log(_value.province +  _value.city +  _value.district +  _value.street +  _value.business);
+            });
+            tip2.addEventListener("onconfirm",function(e){
+                var _value = e.item.value;
+                log(_value.province +  _value.city +  _value.district +  _value.street +  _value.business);
+            });
+
+        })
+    })
+</script>
+</body>
+
+</html>
