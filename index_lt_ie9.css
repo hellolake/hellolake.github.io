@@ -1,0 +1,42 @@
+@charset "utf-8";
+
+.lake a,.lake a img,.play,.play img,.play a,.play i{
+    width: auto;
+}
+
+.lake{
+    margin-top: 5%;
+}
+.lake a{
+    background: url("../img/ltie9/avatar.png") center no-repeat;
+    border: 0;
+}
+.video{
+    height: auto;
+}
+.video_wrap{
+    position: relative;
+    margin-top: -24%;
+}
+.video_wrap img{
+    position: static;
+}
+
+.play em{
+    background: url("../img/ltie9/play_normal.png") center no-repeat;
+}
+
+.loading .play em:after{
+    background-image:none;
+}
+
+.nav_contain{
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    font-size: 1.125em;
+}
+
+.content_wrap div{
+    *display: inline;
+    *zoom: 1;
+}
