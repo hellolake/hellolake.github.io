@@ -180,8 +180,7 @@ lake.listen(window,"load",function () {
             addclass(video_container,"starting");
         }
         if(playing) video.pause();
-        else video.play();
-        addprocess();
+        else {video.play();addprocess();}
     }
     function show() {
         showing = true;
