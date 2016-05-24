@@ -1,5 +1,5 @@
 lake.listen(window,"load",function () {
-    var touchable = "ontouchstart" in document,doc_width,doc_height,canplay = false,starting = false,playing = false,showing = false,loading=false,
+    var touchable = "ontouchstart" in document,doc_width,doc_height,canplay = false,starting = false,playing = false,showing = false,loading=false,content_i = 0,
         video_container = lake.select(".video"),
         video_wrap = video_container.firstElementChild,
         video = video_wrap.firstElementChild;
@@ -14,6 +14,7 @@ lake.listen(window,"load",function () {
     lake.listen(window,"resize",function () {
         resize();
         nav_resize();
+        set_content_h(content_i);
     });
     function set_doc() {
         doc_width = document.documentElement.clientWidth;
@@ -42,7 +43,7 @@ lake.listen(window,"load",function () {
         set_doc();
         if(playing)  playsize();
         else pausesize();
-        setTimeout(center,100)
+        setTimeout(center,100);
     }
     resize();
 
@@ -382,6 +383,11 @@ lake.listen(window,"load",function () {
 
     !touchable&&addclass(content,"hover");
 
+    function set_content_h(index) {
+        content_wrap.style.height = content_wrap.children[index].clientHeight + "px";
+    }
+    set_content_h(content_i);
+
     lake.each(nav_a,function (ele, i) {
         lake.listen(ele,touchable ? "touchend" : "click",function () {
             if(tap){
@@ -389,7 +395,9 @@ lake.listen(window,"load",function () {
                 setTimeout(function () {
                     addclass(ele,"on")
                 });
-                content_wrap.style[transform] = "translateX(" + i*-100 + "%)"
+                content_wrap.style[transform] = "translateX(" + i*-100 + "%)";
+                content_i = i;
+                set_content_h(i);
             }
         });
         lake.listen(ele,"touchstart",function (){
