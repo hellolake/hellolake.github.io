@@ -181,6 +181,7 @@ lake.listen(window,"load",function () {
         }
         if(playing) video.pause();
         else video.play();
+        addprocess();
     }
     function show() {
         showing = true;
@@ -225,7 +226,6 @@ lake.listen(window,"load",function () {
     }
 
     lake.listen(video,"play",function (e) {
-        addprocess();
         hide();
         removeclass(video_container,"ending");
         removeclass(video_container,"pausing");
