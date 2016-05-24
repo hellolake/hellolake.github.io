@@ -221,7 +221,6 @@ lake.listen(window,"load",function () {
     }
     function delprocess() {
         clearInterval(process_int);
-        process_int = null;
         loading = false;
         removeclass(video_container,"loading");
     }
