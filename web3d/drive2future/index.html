@@ -1,0 +1,595 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>Drive To Future - BMW M3 GTR</title>
+
+    <script src="js/tween.min.js"></script>
+
+    <script src="js/three/three.min.js"></script>
+    <script src="js/three/OrbitControls.js"></script>
+    <script src="js/three/Detector.js"></script>
+    <script src="js/three/stats.min.js"></script>
+    <script src="js/three/Mirror.js"></script>
+    <!--<script src="js/three/ColladaLoader.js"></script>-->
+    <script src="js/three/ColladaLoader2.js"></script>
+    <!--<script src="js/three/OBJExporter.js"></script>-->
+
+<style>
+body {
+	padding:0;
+	margin:0;
+    overflow: hidden;
+    background-color:#000;
+}
+.top{position: fixed;top: 0;left:0;z-index: 999;padding:.5em}
+.top a{display:inline-block;font-size:14px;text-decoration:none;padding:.75em;background-color: rgba(255,255,255,.8);color: #000;border-radius:.5em;}
+
+
+canvas{
+    -webkit-tap-highlight-color: transparent;
+}
+#lakeshow{
+    position: absolute;
+    left: 50%;
+    bottom:1em;
+    width: 0;
+}
+.btn1,.btn2{
+    position: absolute;
+    bottom:0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-size: 12px;
+    text-align: center;
+    line-height: 48px;
+    color: #fff;
+    background-color: rgba(0,0,0,0.3);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+}
+.btn1{
+    right:1em;
+}
+.btn2{
+    left:1em;
+}
+.btn1.on,.btn1.hover,.btn2.on,.btn2.hover{
+    background-color: rgba(220,0,0,0.5);
+}
+.loading{
+    position: absolute;
+    top:50%;
+    left: 50%;
+    margin-left: -5em;
+    margin-top: -1px;
+    width: 10em;
+    height: 2px;
+    padding: .25em;
+    background-color: rgba(0,0,0,0.5);
+}
+.strip{
+    width: 0;
+    height: 100%;
+    background-color: #00ff00;
+}
+</style>
+
+</head>
+
+<body>
+<div class="top">
+    <a href="/"><<</a>
+</div>
+
+<script>
+
+    var show = document.createElement("div");
+    show.id = "lakeshow";
+    var loading = document.createElement("div"),
+        strip = document.createElement("div");
+    loading.className = "loading";
+    strip.className = "strip";
+    loading.appendChild(strip);
+
+    var STATS_ENABLED = false;
+
+
+    var container, stats;
+
+    var camera, scene, renderer,controls;
+
+
+    var directionalLight, pointLight;
+
+    var car,car_ring;
+
+    var engine,door,start = false, open = false;
+    var enter,leave,tapon,tapup;
+
+    var BMW,BMW_Door_Left,BMW_Door_Right,BMW_Wheel_Front,BMW_Wheel_Back,ring1,ring2;
+
+    var ring1_tween = {rotate:0},
+        ring1_start,ring1_run,ring1_stop,
+        ring2_tween = {rotate:0},
+        ring2_start,ring2_run,ring2_stop;
+
+    var wheel_tween = {rotate:0},
+        wheel_start,wheel_run,wheel_stop;
+
+    var door_left_tween = {x:0,y:0,z:0},
+        door_left_open,door_left_close;
+    var door_right_tween = {x:0,y:0,z:0},
+        door_right_open,door_right_close;
+
+
+    if ( !Detector.webgl ){
+        alert("当前浏览器不支持3D\n请使用谷歌浏览器或其他浏览器");
+    }else{
+        init();
+        animate();
+    }
+
+    //exporter
+//    var exporter = new THREE.OBJExporter();
+//    var link = document.createElement( 'a' );
+//    link.style.display = 'none';
+//    document.body.appendChild( link ); // Firefox workaround, see #6594
+
+//    var exportString = function ( output, filename ) {
+//
+//        var blob = new Blob( [ output ], { type: 'text/plain' } );
+//        var objectURL = URL.createObjectURL( blob );
+//
+//        link.href = objectURL;
+//        link.download = filename || 'data.json';
+//        link.target = '_blank';
+//
+//        var event = document.createEvent("MouseEvents");
+//        event.initMouseEvent(
+//                "click", true, false, window, 0, 0, 0, 0, 0
+//                , false, false, false, false, 0, null
+//        );
+//        link.dispatchEvent(event);
+//    };
+
+    function init() {
+        if("ontouchstart" in document){
+            tapon = "touchstart";
+            tapup = "touchend";
+        }else {
+            tapon = "mousedown";
+            tapup = "mouseup";
+            if("onmouseenter" in document){
+                enter = "mouseenter";
+                leave = "mouseleave";
+            }else {
+                enter = "mouseover";
+                leave = "mouseout";
+            }
+        }
+
+        // SCENE
+
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2( 0x000000, 0.02 );
+
+        // CAMERAS
+
+        camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 1000 );
+        //cameraCube = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 100000 );
+
+        //scene.add(camera);
+        camera.position.set(17,6,0);
+        camera.lookAt(scene.position);
+
+
+        //
+
+        renderer = new THREE.WebGLRenderer({alpha:true});
+        renderer.setClearColor( 0x000000 );
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( document.documentElement.clientWidth, document.documentElement.clientHeight );
+        renderer.setFaceCulling( THREE.CullFaceBack );
+        renderer.shadowMap.enabled = true;
+//        renderer.shadowMap.type = THREE.BasicShadowMap;
+
+        document.body.appendChild( renderer.domElement );
+        document.body.appendChild(show);
+        document.body.appendChild(loading);
+
+
+        //
+
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.5;
+        controls.maxPolarAngle = 1.48;
+        controls.enablePan = false;
+        controls.minDistance = 11;
+        controls.maxDistance = 20;
+
+
+        // LIGHTS
+
+
+//        directionalLight = new THREE.DirectionalLight( 0xffffff, 0.35 );
+//        directionalLight.position.set( 50, 100, 100 ).normalize();
+//        scene.add( directionalLight );
+
+        var ambient = new THREE.AmbientLight( 0x222222);
+        scene.add( ambient );
+
+        light = new THREE.SpotLight( 0xffffff, 1.1, 200, Math.PI / 12, 10, 1);
+        light.shadowBias =  0.0001;
+        light.exponent =  1;
+
+//        light.shadow = new THREE.LightShadow( new THREE.PerspectiveCamera( 50, 1, 1, 500 ) );
+        light.position.set( 0, 80, 0 );
+        light.target.position.set( 0, 0, 0 );
+
+        light.castShadow = true;
+
+
+//        light.shadow.camera.near = 1;
+//        light.shadow.camera.far = 150;
+//        light.shadow.camera.fov = 50;
+
+
+//        light.shadowMapWidth = 1024;;
+//        light.shadowMapHeight = 1024;
+
+        scene.add( light );
+
+
+        var light2 = new THREE.DirectionalLight( 0xffffff, 0.4/*, 200, Math.PI / 12, 0.5, 1*/);
+        light2.position.set( 2000, 300, 0 );
+        light2.target.position.set( 0, 0, 0 );
+        scene.add( light2 );
+
+        var light3 = new THREE.DirectionalLight( 0xffffff, 0.4);
+        light3.position.set( -2000, 300, 0 );
+        light3.target.position.set( 0, 0, 0 );
+        scene.add( light3 );
+
+        var light4 = new THREE.DirectionalLight( 0xffffff, 0.4);
+        light4.position.set( 0, 300, 2000 );
+        light4.target.position.set( 0, 0, 0 );
+        scene.add( light4 );
+
+        var light5 = new THREE.DirectionalLight( 0xffffff, 0.4);
+        light5.position.set( 0, 300, -2000 );
+        light5.target.position.set( 0, 0, 0 );
+        scene.add( light5 );
+
+
+//        pointLight = new THREE.PointLight( 0xffffff, 2 );
+//        pointLight.position.set( 2000, 1200, 10000 );
+//        scene.add( pointLight );
+
+        //Ground
+
+        var geometry = new THREE.PlaneBufferGeometry( 10, 10 );
+        var planeMaterial = new THREE.MeshPhongMaterial(0x000000);
+
+        var ground = new THREE.Mesh( geometry, planeMaterial );
+
+        ground.position.y = -0.01;
+        ground.rotation.x = - Math.PI / 2;
+        ground.scale.set( 200, 200, 200 );
+
+        ground.receiveShadow = true;
+
+        scene.add( ground );
+
+
+        //Manager
+
+        var manager = new THREE.LoadingManager();
+
+        manager.onProgress = function ( item, loaded, total ) {
+            strip.style.width = loaded/total*100 + "%";
+        };
+
+        manager.onLoad = function () {
+            loading.style.display = "none";
+        };
+
+        var onProgress = function ( xhr ) {
+            if ( xhr.lengthComputable ) {
+                var percentComplete = xhr.loaded / xhr.total * 100;
+                console.log(Math.round(percentComplete, 2) + '% downloaded' );
+            }
+        };
+
+        var onError = function ( xhr ) {
+        };
+
+
+        // STATS
+
+        if ( STATS_ENABLED ) {
+
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '0px';
+            document.body.appendChild( stats.domElement );
+
+        }
+
+
+        //texture
+
+        var r = "textures/cube/";
+        var cube = new THREE.CubeTextureLoader(manager);
+        var textureCube = cube.load( [
+            r+'positiveX.jpg', r+'negativeX.jpg',
+            r+'positiveY.jpg', r+'negativeY.jpg',
+            r+'positiveZ.jpg', r+'negativeZ.jpg'
+        ] );
+
+        var light_texture = new THREE.TextureLoader(manager).load( "textures/light.jpg" );
+        var logo_texture = new THREE.TextureLoader(manager).load( "textures/BMW.png" );
+        var grid_texture = new THREE.TextureLoader(manager).load( "textures/grid.png" );
+        grid_texture.wrapS = grid_texture.wrapT = THREE.MirroredRepeatWrapping;
+        var wheel_texture = new THREE.TextureLoader(manager).load( "textures/wheel.jpg" );
+        var wheelp_texture = new THREE.TextureLoader(manager).load( "textures/wheel_pan.png" );
+
+//        var verticalMirror = new THREE.Mirror( renderer, camera2, { clipBias: 0.003, textureWidth: window.innerWidth, textureHeight: window.innerHeight, color:0x889999 } );
+
+        // common materials
+
+        mlib = {
+            "White":	new THREE.MeshPhongMaterial( { color: 0xffffff, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.2 } ),
+            "Black": 	new THREE.MeshPhongMaterial( { color: 0x111111, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.2 } ),
+            "Black_flat": 	new THREE.MeshLambertMaterial( { color: 0x111111} ),
+            "Gray": 	new THREE.MeshPhongMaterial( { color: 0x111111, specular:0x222222, shininess:10 } ),
+
+            "Light_front": 	new THREE.MeshLambertMaterial( { color: 0x999999,envMap: textureCube, combine: THREE.MixOperation, opacity: 0.6, transparent: true, reflectivity: 0.35 } ),
+            "Light_back": 	new THREE.MeshLambertMaterial( { color: 0xdd4040, map: light_texture, envMap: textureCube, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+            "Light_inner":  new THREE.MeshLambertMaterial( { color: 0xffffff, opacity: 0.75, transparent: true } ),
+            "Logo": 	    new THREE.MeshLambertMaterial( { map: logo_texture, envMap: textureCube, transparent: true, reflectivity: 0.25, fog:false } ),
+            "Wheel": 	    new THREE.MeshPhongMaterial( { color: 0x080808, specular:0x333333, shininess:10, bumpMap:wheel_texture, bumpScale:0.7 } ),
+            "Wheel_pan": 	new THREE.MeshPhongMaterial( { color: 0x000000, map: wheelp_texture, specular:0x333333, shininess:20, transparent: true, metal:true } ),
+            "Seat": 	    new THREE.MeshPhongMaterial( { color: 0x222222, specular:0x303030, shininess:10 } ),
+            "Grid": 	    new THREE.MeshPhongMaterial( { color: 0xaaaaaa, map: grid_texture, bumpMap:grid_texture, bumpScale:0.02 } ),
+            "Ring": 	    new THREE.MeshPhongMaterial( { color: 0x00bbee, opacity: 0.25, transparent: true, side:2 } ),
+
+            "Chrome": 	    new THREE.MeshPhongMaterial( { color: 0x777777, specular:0xffffff, shininess:20, metal:true, envMap: textureCube, reflectivity: 0.3  } ),
+            "Chrome_dark": 	new THREE.MeshPhongMaterial( { color: 0x000000, specular:0x999999, shininess:20, metal:true  } ),
+            "Red": 	        new THREE.MeshLambertMaterial( { color: 0x880000} ),
+            "Red_dark": 	new THREE.MeshLambertMaterial( { color: 0x551111} ),
+
+            "Glass":	  new THREE.MeshLambertMaterial( { color: 0x223344, envMap: textureCube, opacity: 0.35, transparent: true, combine: THREE.MixOperation, reflectivity: 0.3,side:2 } ),
+            "Glass_dark": new THREE.MeshLambertMaterial( { color: 0x101016, envMap: textureCube, opacity: 0.975, transparent: true } ),
+            "Mirror":	  new THREE.MeshPhongMaterial( { color: 0x000000, envMap: textureCube, combine: THREE.MixOperation, reflectivity: .5 } )
+
+        };
+
+
+
+        var loader = new THREE.ColladaLoader(manager);
+//        loader.options.convertUpAxis = true;
+        loader.load( 'obj/BMW_M3.dae', creatscene11 );
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+    }
+    function creatscene11(collada){
+//        console.log(collada,scene)
+        //collada.scene.rotation.x = -Math.PI/2;
+        collada.scene.scale.x = collada.scene.scale.y = collada.scene.scale.z = 3;
+        scene.add(collada.scene);
+
+        console.log( collada.scene);
+
+        BMW = collada.scene;
+        BMW_Door_Left = collada.scene.getObjectByName("BMW_M3_Door_Left");
+        BMW_Door_Right = collada.scene.getObjectByName("BMW_M3_Door_Right");
+        BMW_Wheel_Front = collada.scene.getObjectByName("BMW_M3_Wheel_Front");
+        BMW_Wheel_Back = collada.scene.getObjectByName("BMW_M3_Wheel_Back");
+
+        var Door_Left = BMW_Door_Left.children,
+            Door_Right = BMW_Door_Right.children,
+            Wheel_Front = BMW_Wheel_Front.children,
+            Wheel_Back = BMW_Wheel_Back.children,
+            BMW_Shell = collada.scene.getObjectByName("BMW_M3_Shell"),
+            Shell = BMW_Shell.children,
+            BMW_Body = collada.scene.getObjectByName("BMW_M3_Body"),
+            Body = BMW_Body.children;
+
+        Door_Left[0].material = Door_Right[0].material = Body[1].material = Shell[0].material = mlib['White'] ;
+        Door_Left[1].material = Door_Right[1].material = Wheel_Front[2].material = Body[3].material =  mlib['Gray'];
+        Door_Left[2].material = Door_Right[2].material = Body[9].material = mlib['Glass'];
+        Door_Left[3].material = Door_Right[3].material = Body[13].material = mlib['Mirror'];
+        Door_Left[4].material = Door_Right[4].material = Body[7].material = Shell[3].material = mlib['Black'];
+
+        Wheel_Front[0].material = Wheel_Back[0].material = mlib['Red'];
+        Wheel_Front[1].material = Wheel_Back[1].material = Body[11].material = mlib['Chrome'];
+        Wheel_Front[3].material = Wheel_Back[3].material = mlib['Wheel'];
+        Wheel_Front[4].material = Wheel_Back[4].material = Body[12].material = mlib['Chrome_dark'];
+        Wheel_Front[5].material = Wheel_Back[5].material = Body[2].material = mlib['Logo'];
+        Wheel_Front[6].material = Wheel_Back[6].material = mlib['Wheel_pan'];
+
+        Body[0].material = mlib['Light_back'];
+        Body[4].material = mlib['Light_front'];
+        Body[5].material = mlib['Glass_dark'];
+        Body[6].material = mlib['Grid'];
+        Body[8].material = mlib['Seat'];
+        Body[9].material = mlib['Glass'];
+        Body[10].material = mlib['Red_dark'];
+        Body[15].material = mlib['Chrome'];
+
+
+        Body[14].material = Shell[2].material = Shell[1].material = mlib['Black_flat'];
+
+        Shell[1].castShadow = true;
+        console.log(Shell[1]);
+
+        car = collada.scene;
+        var loader = new THREE.ColladaLoader();
+//        loader.options.upAxis = "Y";
+//        loader.options.convertUpAxis = true;
+        loader.load( 'obj/BMW_M3_RING.dae', creatscene22 );
+
+    }
+    function creatscene22(collada){
+        car_ring = collada.scene;
+
+//        car_ring.rotation.x = -Math.PI/2;
+        car_ring.scale.x = car_ring.scale.y = car_ring.scale.z = 5;
+        ring1 = car_ring.getObjectByName("Cylinder");
+        ring2 = car_ring.getObjectByName("Cylinder_001");
+        ring1.material = ring2.material = mlib['Ring'];
+
+        scene.add(car_ring);
+
+        engine = document.createElement("div");
+        engine.className = "btn1";
+        engine.innerHTML = "ENGINE";
+        show.appendChild(engine);
+        door = document.createElement("div");
+        door.className = "btn2";
+        door.innerHTML = "DOOR";
+        show.appendChild(door);
+
+        engine.addEventListener(enter,enter_fn);
+        engine.addEventListener(leave,leave_fn);
+        door.addEventListener(enter,enter_fn);
+        door.addEventListener(leave,leave_fn);
+        engine.addEventListener(tapup,engine_fn);
+//        engine.addEventListener(tapup,engine_off);
+        door.addEventListener(tapup,door_fn);
+//        door.addEventListener(tapup,door_close);
+    }
+    function enter_fn(e) {
+        this.classList.add("hover")
+    }
+    function leave_fn(e) {
+        this.classList.remove("hover")
+    }
+    function engine_on(e) {
+        start = true;
+        this.classList.add("on");
+
+        ring1_start&&ring1_start.stop();
+        ring1_stop&&ring1_stop.stop();
+        ring1_run&&ring1_run.stop();
+        ring1_start = new TWEEN.Tween(ring1_tween).to({rotate: "+"+Math.PI}, 4000).easing(TWEEN.Easing.Quadratic.In).onUpdate(update);
+        ring1_run = new TWEEN.Tween(ring1_tween).to({rotate: "+"+Math.PI},2000).easing(TWEEN.Easing.Linear.None).repeat(Infinity).onUpdate(update);
+        ring1_start.chain(ring1_run);
+        ring1_start.start();
+
+        ring2_start&&ring2_start.stop();
+        ring2_stop&&ring2_stop.stop();
+        ring2_run&&ring2_run.stop();
+        ring2_start = new TWEEN.Tween(ring2_tween).to({rotate: "-"+Math.PI}, 4000).easing(TWEEN.Easing.Quadratic.In).onUpdate(update);
+        ring2_run = new TWEEN.Tween(ring2_tween).to({rotate: "-"+Math.PI},2000).easing(TWEEN.Easing.Linear.None).repeat(Infinity).onUpdate(update);
+        ring2_start.chain(ring2_run);
+        ring2_start.start();
+
+        wheel_start&&wheel_start.stop();
+        wheel_stop&&wheel_stop.stop();
+        wheel_run&&wheel_run.stop();
+        wheel_start = new TWEEN.Tween(wheel_tween).to({rotate: "+"+2*Math.PI}, 2000).easing(TWEEN.Easing.Quadratic.In).onUpdate(update);
+        wheel_run = new TWEEN.Tween(wheel_tween).to({rotate: "+"+2*Math.PI},1000).easing(TWEEN.Easing.Linear.None).repeat(Infinity).onUpdate(update);
+        wheel_start.chain(wheel_run);
+        wheel_start.start();
+    }
+    function engine_off(e) {
+        start = false;
+        this.classList.remove("on");
+
+        ring1_stop = new TWEEN.Tween(ring1_tween).to({rotate: "+"+Math.PI}, 4000).easing(TWEEN.Easing.Quadratic.Out).onUpdate(update);
+        ring1_start&&ring1_start.chain(ring1_stop);
+        ring1_run&&ring1_run.repeat(0);
+        ring1_run&&ring1_run.chain(ring1_stop);
+
+        ring2_stop = new TWEEN.Tween(ring2_tween).to({rotate: "-"+Math.PI}, 4000).easing(TWEEN.Easing.Quadratic.Out).onUpdate(update);
+        ring2_start&&ring2_start.chain(ring2_stop);
+        ring2_run&&ring2_run.repeat(0);
+        ring2_run&&ring2_run.chain(ring2_stop);
+
+        wheel_stop = new TWEEN.Tween(wheel_tween).to({rotate: "+"+2*Math.PI}, 2000).easing(TWEEN.Easing.Quadratic.Out).onUpdate(update);
+        wheel_start&&wheel_start.chain(wheel_stop);
+        wheel_run&&wheel_run.repeat(0);
+        wheel_run&&wheel_run.chain(wheel_stop);
+    }
+    function door_open(e) {
+        open = true;
+        this.classList.add("on");
+
+        door_left_close&&door_left_close.stop();
+        door_left_open = new TWEEN.Tween(door_left_tween).to({x:0.35,y:-0.4,z:-0.7}, 3000).easing(TWEEN.Easing.Quadratic.InOut).onUpdate(update);
+        door_left_open.start();
+
+        door_right_close&&door_right_close.stop();
+        door_right_open = new TWEEN.Tween(door_right_tween).to({x:0.35,y:0.4,z:0.7}, 3000).easing(TWEEN.Easing.Quadratic.InOut).onUpdate(update);
+        door_right_open.start();
+    }
+    function door_close(e) {
+        open = false;
+        this.classList.remove("on");
+
+        door_left_open&&door_left_open.stop();
+        door_left_close = new TWEEN.Tween(door_left_tween).to({x:0,y:0,z:0}, 4000).easing(TWEEN.Easing.Quadratic.Out).onUpdate(update);
+        door_left_close.start();
+
+        door_right_open&&door_right_open.stop();
+        door_right_close = new TWEEN.Tween(door_right_tween).to({x:0,y:0,z:0}, 4000).easing(TWEEN.Easing.Quadratic.Out).onUpdate(update);
+        door_right_close.start();
+    }
+    function engine_fn(e) {
+        start ? engine_off.call(this) : engine_on.call(this);
+    }
+    function door_fn(e) {
+        open ? door_close.call(this) : door_open.call(this);
+    }
+
+    function update() {
+        ring1.rotation.z = ring1_tween.rotate;
+        ring2.rotation.z = ring2_tween.rotate;
+        BMW_Wheel_Front.rotation.x = BMW_Wheel_Back.rotation.x = wheel_tween.rotate;
+        BMW_Door_Left.rotation.x = door_left_tween.x;
+        BMW_Door_Left.rotation.y = door_left_tween.y;
+        BMW_Door_Left.rotation.z = door_left_tween.z;
+        BMW_Door_Right.rotation.x = door_right_tween.x;
+        BMW_Door_Right.rotation.y = door_right_tween.y;
+        BMW_Door_Right.rotation.z = door_right_tween.z;
+    }
+
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( document.documentElement.clientWidth, document.documentElement.clientHeight );
+
+    }
+
+    //
+
+    function animate() {
+        requestAnimationFrame( animate );
+//        scene.rotation.y += 0.005;
+        TWEEN.update();
+        controls.update();
+//        STATS_ENABLED && stats.update();
+        render();
+
+    }
+
+    function render() {
+
+        renderer.render( scene, camera );
+
+
+    }
+
+</script>
+</body>
+</html>
