@@ -176,7 +176,7 @@ header{
 
 
 .video{
-    height:0;
+    /*height:0;*/
     -webkit-transition: height 360ms;
     transition: height 360ms;
 }
@@ -514,13 +514,15 @@ nav.right:after{
     z-index:3;
     white-space: nowrap;
     word-break: keep-all;
-    -moz-transition: -moz-transform 300ms;
-    -webkit-transition: -webkit-transform 300ms;
-    transition:transform 300ms;
     -ms-transform: translate(0,0);
     -moz-transform: translate3D(0,0,0);
     -webkit-transform: translate3D(0,0,0);
     transform: translate3D(0,0,0);
+}
+.content_wrap.animate{
+    -moz-transition: -moz-transform 300ms;
+    -webkit-transition: -webkit-transform 300ms;
+    transition:transform 300ms;
 }
 .content_wrap div,.block_wrap,.block,.block a,.block strong,.block span,.block .btm a:before,.block .btm .lotus:after{
     display: inline-block;
