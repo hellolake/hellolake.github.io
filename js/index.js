@@ -1,10 +1,10 @@
 lake.listen(window,"load",function () {
-    var touchable = "ontouchstart" in document,doc_width,doc_height,canplay = false,starting = false,playing = false,showing = false,loading=false,content_i = 0,
+    console.log(localStorage.getItem("content_i"));
+    var touchable = "ontouchstart" in document,doc_width,doc_height,canplay = false,starting = false,playing = false,showing = false,loading=false,content_i = localStorage.getItem("content_i") || 0,
         video_container = lake.select(".video"),
         video_wrap = video_container.firstElementChild,
         video = video_wrap.firstElementChild;
 
-    console.log([video]);
     console.log(navigator.userAgent);
     console.log(video.canPlayType('video/webm; codecs="vp8.0, vorbis"'));
 
@@ -97,7 +97,9 @@ lake.listen(window,"load",function () {
     var img2 = document.createElement("img");
     addclass(img2,"two");
     img2.setAttribute("src","img/A_Chinese_Selection2.jpg");
-    video_wrap.appendChild(img2);
+    setTimeout(function () {
+        video_wrap.appendChild(img2);
+    },2000);
 
     function loadingprevent(e) {
         if(playing&&loading){
@@ -173,8 +175,12 @@ lake.listen(window,"load",function () {
     }
 
     function play() {
-        if(!canplay && (video.currentSrc).match(/\.webm/i)){
-            video.setAttribute("src","video/A_Chinese_Selection.mp4");
+        if(!canplay){
+            video.setAttribute("src","video/A_Chinese_Selection.webm");
+            setTimeout(function () {
+                !canplay && video.setAttribute("src","video/A_Chinese_Selection.mp4");
+                video.play();
+            },600);
         }
         if(!starting){
             starting = true;
@@ -259,6 +265,7 @@ lake.listen(window,"load",function () {
         // log.innerHTML +=(" playing")
     });
     lake.listen(video,"loadstart",function (e) {
+        console.log("loadstart");
         // log.innerHTML +=(" loadstart")
     });
     lake.listen(video,"progress",function (e) {
@@ -268,6 +275,7 @@ lake.listen(window,"load",function () {
         // console.log("paused:"+video.paused);
     });
     lake.listen(video,"loadeddata",function (e) {
+        console.log("loadeddata");
         // log.innerHTML +=(" loadeddata")
     });
     lake.listen(video,"seeking",function (e) {
@@ -278,6 +286,7 @@ lake.listen(window,"load",function () {
     });
     lake.listen(video,"canplay",function (e) {
         canplay = true;
+        console.log("canplay");
         // log.innerHTML +=(" canplay")
     });
     lake.listen(video,"load",function (e) {
@@ -382,21 +391,28 @@ lake.listen(window,"load",function () {
         content_wrap = content.firstElementChild;
 
     !touchable&&addclass(content,"hover");
+    removeclass(lake.select(".nav_wrap em.on"),"on");
+    addclass(lake.select(".nav_wrap em")[content_i],"on");
 
     function set_content_h(index) {
         content_wrap.style.height = content_wrap.children[index].clientHeight + "px";
     }
-    set_content_h(content_i);
+
+    function set_content_offset(index) {
+        content_wrap.style[transform] = "translateX(" + index*-100 + "%)";
+    }
+    set_content_offset(content_i);
 
     lake.each(nav_a,function (ele, i) {
         lake.listen(ele,touchable ? "touchend" : "click",function () {
             if(tap){
                 removeclass(lake.select(".nav_wrap em.on"),"on");
+                addclass(ele,"on");
                 setTimeout(function () {
-                    addclass(ele,"on")
-                });
-                content_wrap.style[transform] = "translateX(" + i*-100 + "%)";
+                    set_content_offset(i);
+                },20);
                 content_i = i;
+                localStorage.setItem("content_i",i);
                 set_content_h(i);
             }
         });
@@ -410,6 +426,31 @@ lake.listen(window,"load",function () {
     });
     lake.each(lake.select(".block_wrap"),function () {
         this.children.length & 1 &&  addclass(this.lastElementChild,"even")
-    })
+    });
+
+    lake.listen(window,"scroll",function(){
+        localStorage.setItem("scrollY",window.scrollY)
+    });
+
+    setTimeout(function () {
+        set_content_h(content_i);
+        addclass(content_wrap,"animate");
+    },50);
+
+    var scrollY = localStorage.getItem("scrollY") || 0;
+
+    if(scrollY > 0){
+        setTimeout(function () {
+            window.scrollTo(0,scrollY);
+            // requestAnimationFrame(intro)
+        },100);
+    }
+
+    function intro() {
+        if(window.scrollY < scrollY){
+            window.scrollY+50 < scrollY ? window.scrollBy(0,50) : window.scrollTo(0,scrollY);
+            requestAnimationFrame(intro);
+        }
+    }
 
 });
