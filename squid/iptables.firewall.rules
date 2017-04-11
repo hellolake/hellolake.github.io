@@ -1,0 +1,16 @@
+*filter
+
+## prevent dos attack
+-A INPUT -p tcp -m multiport --dport 21,67,68,80,110,443,6768 -m limit --limit 25/minute --limit-burst 100 -j ACCEPT
+
+## Allow all loopback (lo0) traffic and drop all traffic to 127/8 that doesn't use lo0
+-A INPUT -i lo -j ACCEPT
+-A INPUT -d 127.0.0.0/8 -j REJECT
+
+## Accept all established inbound connections
+-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+## Drop all except defined
+-A INPUT -p tcp -m multiport ! --dport 21,67,68,80,110,443,6768 -j DROP
+
+COMMIT
